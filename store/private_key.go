@@ -10,6 +10,14 @@ import (
 
 const numBits = 2048
 
+type PrivateKey struct {
+	db *sql.DB
+}
+
+func NewPrivateKey(db *sql.DB) *PrivateKey {
+	return &PrivateKey{db: db}
+}
+
 func privateKeyToPEM(privkey *rsa.PrivateKey) string {
 	pkeyBytes := x509.MarshalPKCS1PrivateKey(privkey)
 	pkeyPem := pem.EncodeToMemory(
@@ -22,12 +30,12 @@ func privateKeyToPEM(privkey *rsa.PrivateKey) string {
 }
 
 // CreatePrivateKey creates a new private key in the database and returns its ID.
-func CreatePrivateKey(db *sql.DB) (int64, error) {
+func (svc PrivateKey) CreatePrivateKey() (int64, error) {
 	pkey, err := rsa.GenerateKey(rand.Reader, 2048)
 	if err != nil {
 		return 0, err
 	}
-	result, err := db.Exec(`INSERT INTO private_key (key) VALUES (?) RETURNING id`, privateKeyToPEM(pkey))
+	result, err := svc.db.Exec(`INSERT INTO private_key (key) VALUES (?) RETURNING id`, privateKeyToPEM(pkey))
 	if err != nil {
 		return 0, err
 	}
@@ -35,9 +43,9 @@ func CreatePrivateKey(db *sql.DB) (int64, error) {
 }
 
 // FindPrivateKey returns the private key with the given ID.
-func FindPrivateKey(db *sql.DB, id int64) (*rsa.PrivateKey, error) {
+func (svc PrivateKey) FindPrivateKey(id int64) (*rsa.PrivateKey, error) {
 	var key string
-	err := db.QueryRow(`SELECT key FROM private_key WHERE id = ?`, id).Scan(&key)
+	err := svc.db.QueryRow(`SELECT key FROM private_key WHERE id = ?`, id).Scan(&key)
 	if err != nil {
 		return nil, err
 	}

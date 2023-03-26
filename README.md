@@ -16,3 +16,6 @@ I would use a more scalable database like Postgres.
 
 The emit, ingest, and even worker could be combined into a single process leveraging Go's concurrency. 
 But to demonstrate a distributed system, I have separated them into separate processes.
+
+Design Highlights:
+* The `store` package uses a service object pattern so the methods do not have `*sql.DB` in its signature. This decouples the sql database in case we want to migrate to another database.
