@@ -22,7 +22,8 @@ sqlite3 "$DB_FILE" <<EOF
   CREATE TABLE private_key (
     id INTEGER PRIMARY KEY AUTOINCREMENT,
     key TEXT NOT NULL,
-    used INTEGER DEFAULT 0
+    in_use INTEGER NOT NULL DEFAULT 0,
+    used_count INTEGER DEFAULT 0
   );
 
   CREATE TABLE signature (
