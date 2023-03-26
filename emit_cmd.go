@@ -1,8 +1,9 @@
 package main
 
 import (
-	"fmt"
+	"log"
 	"net/http"
+	"os"
 	"time"
 
 	"github.com/DavidNix/sign-wave/emit"
@@ -24,6 +25,8 @@ func EmitCmd() *cobra.Command {
 }
 
 func doEmit(cmd *cobra.Command, args []string) error {
+	logger := log.New(os.Stderr, "[EMIT] ", 0)
+
 	db, err := openDB(cmd)
 	if err != nil {
 		return err
@@ -42,16 +45,16 @@ func doEmit(cmd *cobra.Command, args []string) error {
 	for {
 		found, err := store.NewRecord(db).FindAvailableRecords(size)
 		if err != nil {
-			fmt.Println("Error finding records: ", err)
+			logger.Println("Error finding records: ", err)
 		}
-		fmt.Printf("Sending %d records\n", len(found))
+		logger.Printf("Sending %d records\n", len(found))
 		client := &http.Client{Timeout: 60 * time.Second}
 
 		if err := emit.SendToIngest(client, baseURL, found); err != nil {
-			fmt.Println("Error sending records: ", err)
+			logger.Println("Error sending records: ", err)
 		} else {
-			fmt.Printf("Successfully sent %d records\n", len(found))
+			logger.Printf("Successfully sent %d records\n", len(found))
 		}
-		time.Sleep(1 * time.Second)
+		time.Sleep(100 * time.Millisecond)
 	}
 }
