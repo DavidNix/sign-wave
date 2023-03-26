@@ -6,6 +6,7 @@ Concurrently signs messages with RSA keys. Prevents double sign and concurrent u
 * We have control over the all databases.
 * Supports moderate scale, but not large scale.
 * Storing private keys in plaintext is acceptable for this experiment, but not in production.
+* If private keys are stored elsewhere, we can create private_key records using the public key hash or otherwise as the identifier. Then the signing process looks up the private key from elsewhere.
 
 ## Architecture
 
