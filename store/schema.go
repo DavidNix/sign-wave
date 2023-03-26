@@ -18,7 +18,7 @@ func CreateSchema(db *sql.DB) error {
   CREATE TABLE private_key (
     id INTEGER PRIMARY KEY AUTOINCREMENT,
     key TEXT UNIQUE NOT NULL,
-    in_use INTEGER NOT NULL DEFAULT 0,
+    leased INTEGER NOT NULL DEFAULT 0,
     used_count INTEGER DEFAULT 0
   );
 

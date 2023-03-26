@@ -10,11 +10,16 @@ import (
 
 const numBits = 2048
 
-type PrivateKey struct {
-	db *sql.DB
+type Database interface {
+	Exec(query string, args ...any) (sql.Result, error)
+	QueryRow(query string, args ...any) *sql.Row
 }
 
-func NewPrivateKey(db *sql.DB) *PrivateKey {
+type PrivateKey struct {
+	db Database
+}
+
+func NewPrivateKey(db Database) *PrivateKey {
 	return &PrivateKey{db: db}
 }
 
@@ -31,11 +36,11 @@ func privateKeyToPEM(privkey *rsa.PrivateKey) string {
 
 // CreatePrivateKey creates a new private key in the database and returns its ID.
 func (svc PrivateKey) CreatePrivateKey() (int64, error) {
-	pkey, err := rsa.GenerateKey(rand.Reader, 2048)
+	pkey, err := rsa.GenerateKey(rand.Reader, numBits)
 	if err != nil {
 		return 0, err
 	}
-	result, err := svc.db.Exec(`INSERT INTO private_key (key) VALUES (?) RETURNING id`, privateKeyToPEM(pkey))
+	result, err := svc.db.Exec(`INSERT INTO private_key (key) VALUES (?)`, privateKeyToPEM(pkey))
 	if err != nil {
 		return 0, err
 	}
@@ -55,4 +60,28 @@ func (svc PrivateKey) FindPrivateKey(id int64) (*rsa.PrivateKey, error) {
 		return nil, err
 	}
 	return pkey, nil
+}
+
+// Lease finds an available private key and leases it for the given record IDs.
+// Must be used with a transaction to prevent races.
+func (svc PrivateKey) Lease(recordIDs []int64) error {
+	var privKeyID int64
+	err := svc.db.QueryRow(`SELECT id FROM private_key WHERE leased = 0 ORDER BY used_count ASC LIMIT 1`).Scan(&privKeyID)
+	if err != nil {
+		return err
+	}
+
+	_, err = svc.db.Exec(`UPDATE private_key SET leased = 1, used_count = used_count + 1 WHERE private_key.id = ?`, privKeyID)
+	if err != nil {
+		return err
+	}
+
+	for _, id := range recordIDs {
+		_, err = svc.db.Exec(`INSERT INTO signature (record_id, private_key_id) VALUES (?, ?)`, id, privKeyID)
+		if err != nil {
+			return err
+		}
+	}
+
+	return nil
 }
