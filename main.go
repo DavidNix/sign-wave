@@ -38,5 +38,6 @@ func openDB(cmd *cobra.Command) (*sql.DB, error) {
 	if err != nil {
 		return nil, err
 	}
+	db.SetMaxOpenConns(1)
 	return db, db.Ping()
 }
