@@ -9,6 +9,7 @@ import (
 func CreateSchema(db *sql.DB) error {
 	_, err := db.Exec(`
   PRAGMA foreign_keys=ON;
+  PRAGMA journal_mode=WAL;
 
   CREATE TABLE record (
     id INTEGER PRIMARY KEY AUTOINCREMENT,
