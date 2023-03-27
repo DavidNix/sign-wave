@@ -53,7 +53,7 @@ func setupIngestServer(logger *log.Logger, db *sql.DB) {
 			w.WriteHeader(http.StatusBadRequest)
 			return
 		}
-		logger.Println("Received batch of %d records", len(body.RecordIDs))
+		logger.Printf("Received batch of %d records\n", len(body.RecordIDs))
 		tx, err := db.Begin()
 		if err != nil {
 			logger.Println("Error begin tx:", err)
