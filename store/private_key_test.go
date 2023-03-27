@@ -68,6 +68,7 @@ func TestPrivateKey_Lease(t *testing.T) {
 
 		var leased, usedCount int
 		err = tx.QueryRow(`SELECT leased, used_count FROM private_key WHERE id = ?`, pkeyID).Scan(&leased, &usedCount)
+		require.NoError(t, err)
 		require.Equal(t, 1, leased)
 		require.Equal(t, 1, usedCount)
 	})

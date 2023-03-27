@@ -22,6 +22,7 @@ func TestFindAvailableRecords(t *testing.T) {
 		pkey1, err := NewPrivateKey(db).CreatePrivateKey()
 		require.NoError(t, err)
 		_, err = NewSignature(db).CreateSignature(r1, pkey1)
+		require.NoError(t, err)
 
 		r2, err := svc.CreateRecord("bar")
 		require.NoError(t, err)

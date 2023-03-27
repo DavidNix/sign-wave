@@ -39,6 +39,7 @@ func TestSignature_SignWithKey(t *testing.T) {
 
 	var got []byte
 	err = db.QueryRow(`SELECT value FROM signature WHERE id = ?`, sigID).Scan(&got)
+	require.NoError(t, err)
 
 	require.NotEmpty(t, string(got))
 
