@@ -1,6 +1,12 @@
 package store
 
-import "database/sql"
+import (
+	"crypto"
+	"crypto/rand"
+	"crypto/rsa"
+	"crypto/sha256"
+	"database/sql"
+)
 
 type Signature struct {
 	db *sql.DB
@@ -20,4 +26,34 @@ func (svc Signature) CreateSignature(recordID, privKeyID int64) (int64, error) {
 		return 0, err
 	}
 	return result.LastInsertId()
+}
+
+// SignWithKey signs the associated record with the given signature ID using the given private key.
+func (svc Signature) SignWithKey(pkey *rsa.PrivateKey, sigID int64) error {
+	tx, err := svc.db.Begin()
+	if err != nil {
+		return err
+	}
+	defer tx.Rollback()
+
+	var data []byte
+	err = tx.QueryRow(`SELECT data FROM record 
+	INNER JOIN signature ON signature.record_id = record.id
+	WHERE signature.id = ? LIMIT 1`, sigID).Scan(&data)
+	if err != nil {
+		return err
+	}
+
+	hash := sha256.Sum256(data)
+	sig, err := rsa.SignPSS(rand.Reader, pkey, crypto.SHA256, hash[:], nil)
+	if err != nil {
+		return err
+	}
+
+	_, err = tx.Exec(`UPDATE signature SET value = ? WHERE id = ?`, sig, sigID)
+	if err != nil {
+		return err
+	}
+
+	return tx.Commit()
 }
