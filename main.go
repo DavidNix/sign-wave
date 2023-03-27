@@ -34,5 +34,9 @@ func openDB(cmd *cobra.Command) (*sql.DB, error) {
 	if err != nil {
 		return nil, err
 	}
-	return sql.Open("sqlite", dsn)
+	db, err := sql.Open("sqlite", dsn)
+	if err != nil {
+		return nil, err
+	}
+	return db, db.Ping()
 }
