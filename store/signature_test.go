@@ -47,3 +47,28 @@ func TestSignature_SignWithKey(t *testing.T) {
 	err = rsa.VerifyPSS(&pkey.PublicKey, crypto.SHA256, msgHash[:], got, nil)
 	require.NoError(t, err)
 }
+
+func TestSignature_EmptySignature(t *testing.T) {
+	t.Parallel()
+
+	db, err := sql.Open("sqlite", ":memory:")
+	require.NoError(t, err)
+	MustCreateSchema(db)
+
+	pkeyID, err := NewPrivateKey(db).CreatePrivateKey()
+	require.NoError(t, err)
+
+	recordID, err := NewRecord(db).CreateRecord("data")
+	require.NoError(t, err)
+
+	svc := NewSignature(db)
+	sigID, err := svc.CreateSignature(recordID, pkeyID)
+	require.NoError(t, err)
+
+	got, err := svc.EmptySignature()
+	require.NoError(t, err)
+
+	require.Equal(t, sigID, got.ID)
+	require.NotZero(t, got.RecordID)
+	require.NotZero(t, got.PrivKeyID)
+}

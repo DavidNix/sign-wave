@@ -57,3 +57,17 @@ func (svc Signature) SignWithKey(pkey *rsa.PrivateKey, sigID int64) error {
 
 	return tx.Commit()
 }
+
+type SignatureRow struct {
+	ID        int64
+	RecordID  int64
+	PrivKeyID int64
+}
+
+// EmptySignature returns the first signature that has yet to be signed.
+func (svc Signature) EmptySignature() (SignatureRow, error) {
+	var row SignatureRow
+	err := svc.db.QueryRow(`SELECT id, record_id, private_key_id FROM signature WHERE value IS NULL LIMIT 1`).
+		Scan(&row.ID, &row.RecordID, &row.PrivKeyID)
+	return row, err
+}
