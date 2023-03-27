@@ -27,3 +27,4 @@ But to demonstrate a distributed system, I have separated them.
 * Pass contexts and listen for cancellation.
 * The `store` package methods take an `int64` id as arguments. This is error prone as it's easy to mix up ids. Instead, use a custom type for each id, e.g. `SignatureID`, `PrivateKeyID`, etc.
 * Monitor query performance and add missing indexes.
+* Use prepared statements.
