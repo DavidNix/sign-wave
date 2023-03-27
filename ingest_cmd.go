@@ -27,7 +27,7 @@ func IngestCmd() *cobra.Command {
 }
 
 func doIngest(cmd *cobra.Command, args []string) error {
-	logger := log.New(os.Stderr, "[INGEST] ", 0)
+	logger := log.New(os.Stderr, "[INGEST] ", log.LstdFlags|log.Lmsgprefix)
 
 	db, err := openDB(cmd)
 	if err != nil {

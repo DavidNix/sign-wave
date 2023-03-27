@@ -25,7 +25,7 @@ func EmitCmd() *cobra.Command {
 }
 
 func doEmit(cmd *cobra.Command, args []string) error {
-	logger := log.New(os.Stderr, "[EMIT] ", 0)
+	logger := log.New(os.Stderr, "[EMIT] ", log.LstdFlags|log.Lmsgprefix)
 
 	db, err := openDB(cmd)
 	if err != nil {
