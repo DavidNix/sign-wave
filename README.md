@@ -9,6 +9,7 @@ Concurrently signs messages with RSA keys. Prevents double sign and concurrent u
 * Supports moderate scale, but not large scale.
 * Storing private keys in plaintext is acceptable for this experiment, but not in production.
 * If private keys are stored elsewhere, we can create private_key records using the public key hash or otherwise as the identifier. Then the signing process looks up the private key from elsewhere.
+* It's odd to have a microservice architecture in which all services query the same database. In this case, we are using the database as the synchronization mechanism.
 
 ## Architecture
 
@@ -19,9 +20,6 @@ I would use a more scalable database like Postgres.
 
 The emit, ingest, and even worker could be combined into a single process leveraging Go's concurrency. 
 But to demonstrate a distributed system, I have separated them.
-
-### Design Highlights:
-* The `store` package uses a service object pattern so the methods do not have `*sql.DB` in its signature. This decouples the sql database in case we want to migrate to another database.
 
 ### Areas of Improvement (aside from this being an experiment)
 * Pass contexts and listen for cancellation.
