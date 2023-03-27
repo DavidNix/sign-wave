@@ -15,4 +15,4 @@
 # vendor/
 
 # Sqlite databases
-*.db
+*.db*
