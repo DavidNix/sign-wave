@@ -85,3 +85,17 @@ func (svc PrivateKey) Lease(recordIDs []int64) error {
 
 	return nil
 }
+
+// ResetLeases resets the leases on all private keys which have signed all associated records.
+func (svc PrivateKey) ResetLeases() error {
+	_, err := svc.db.Exec(`UPDATE private_key SET leased = 0
+				FROM (
+				SELECT private_key_id, count(CASE WHEN value IS NULL THEN 1 ELSE NULL END) AS cnt 
+					FROM signature 
+					INNER JOIN private_key ON private_key.id = signature.private_key_id 
+					WHERE private_key.leased = 1 GROUP BY private_key_id
+					HAVING cnt = 0
+				) AS s 
+                WHERE private_key.id = s.private_key_id`)
+	return err
+}
