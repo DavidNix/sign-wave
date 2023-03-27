@@ -63,4 +63,10 @@ func TestSendToIngest(t *testing.T) {
 		require.Error(t, err)
 		require.EqualError(t, err, "bad status code: 500")
 	})
+
+	t.Run("no records", func(t *testing.T) {
+		err := SendToIngest(nil, "", nil)
+		require.Error(t, err)
+		require.EqualError(t, err, "no records to send")
+	})
 }

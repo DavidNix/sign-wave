@@ -3,6 +3,7 @@ package emit
 import (
 	"bytes"
 	"encoding/json"
+	"errors"
 	"fmt"
 	"io"
 	"net/http"
@@ -19,6 +20,9 @@ type HTTPPoster interface {
 
 // SendToIngest sends a batch of records to the ingest endpoint.
 func SendToIngest(client HTTPPoster, baseURL string, recordIDs []int64) error {
+	if len(recordIDs) == 0 {
+		return errors.New("no records to send")
+	}
 	u, err := url.Parse(baseURL)
 	if err != nil {
 		return fmt.Errorf("bad base url: %w", err)

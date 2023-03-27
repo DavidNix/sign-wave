@@ -42,19 +42,24 @@ func doEmit(cmd *cobra.Command, args []string) error {
 		return err
 	}
 
-	for {
-		found, err := store.NewRecord(db).FindAvailableRecords(size)
-		if err != nil {
-			logger.Println("Error finding records: ", err)
-		}
-		logger.Printf("Sending %d records\n", len(found))
-		client := &http.Client{Timeout: 60 * time.Second}
+	client := &http.Client{Timeout: 60 * time.Second}
 
-		if err := emit.SendToIngest(client, baseURL, found); err != nil {
-			logger.Println("Error sending records: ", err)
-		} else {
+	for {
+		func() {
+			found, err := store.NewRecord(db).FindAvailableRecords(size)
+			if err != nil {
+				logger.Println("Error finding records:", err)
+				time.Sleep(time.Second)
+				return
+			}
+			logger.Printf("Sending %d records\n", len(found))
+
+			if err := emit.SendToIngest(client, baseURL, found); err != nil {
+				logger.Println("Error sending records:", err)
+				return
+			}
 			logger.Printf("Successfully sent %d records\n", len(found))
-		}
-		time.Sleep(100 * time.Millisecond)
+			time.Sleep(100 * time.Millisecond)
+		}()
 	}
 }

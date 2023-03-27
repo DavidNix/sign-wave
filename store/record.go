@@ -1,6 +1,9 @@
 package store
 
-import "database/sql"
+import (
+	"database/sql"
+	"errors"
+)
 
 type Record struct {
 	db *sql.DB
@@ -40,6 +43,9 @@ func (svc Record) FindAvailableRecords(limit int) ([]int64, error) {
 			return nil, err
 		}
 		ids = append(ids, id)
+	}
+	if len(ids) == 0 {
+		return nil, errors.New("no records found")
 	}
 	return ids, nil
 }

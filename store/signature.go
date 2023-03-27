@@ -30,8 +30,14 @@ func (svc Signature) CreateSignature(recordID, privKeyID int64) (int64, error) {
 
 // SignWithKey signs the associated record with the given signature ID using the given private key.
 func (svc Signature) SignWithKey(pkey *rsa.PrivateKey, sigID int64) error {
+	tx, err := svc.db.Begin()
+	if err != nil {
+		return err
+	}
+	defer tx.Rollback()
+
 	var data []byte
-	err := svc.db.QueryRow(`SELECT data FROM record 
+	err = tx.QueryRow(`SELECT data FROM record 
 	INNER JOIN signature ON signature.record_id = record.id
 	WHERE signature.id = ? LIMIT 1`, sigID).Scan(&data)
 	if err != nil {
@@ -44,8 +50,11 @@ func (svc Signature) SignWithKey(pkey *rsa.PrivateKey, sigID int64) error {
 		return err
 	}
 
-	_, err = svc.db.Exec(`UPDATE signature SET value = ? WHERE id = ?`, sig, sigID)
-	return err
+	_, err = tx.Exec(`UPDATE signature SET value = ? WHERE id = ?`, sig, sigID)
+	if err != nil {
+		return err
+	}
+	return tx.Commit()
 }
 
 type SignatureRow struct {
